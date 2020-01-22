@@ -50,11 +50,14 @@ bool StakeMgr::Update(std::vector<std::shared_ptr<CWallet>> & wallets, const CBl
             return false; /// not ready to stake yet (need to be synced up with peers)
     }
     const int stakeSearchPeriodSeconds{MAX_FUTURE_BLOCK_TIME_POS};
-    const bool notExpired = GetAdjustedTime() <= lastUpdateTime;
-    const bool tipChanged = tip->nHeight != lastBlockHeight;
-    const bool staleTip = tip->nTime <= lastUpdateTime || tip->nTime < GetAdjustedTime() - params.stakeMinAge*2; // TODO Blocknet testnet could stall chain?
-    if (notExpired && !tipChanged && staleTip)
-        return false; // do not process if not expired, tip hasn't changed, and tip time is stale
+//    const bool notExpired = GetAdjustedTime() <= lastUpdateTime;
+//    const bool tipChanged = tip->nHeight != lastBlockHeight;
+//    const bool staleTip = tip->nTime <= lastUpdateTime || tip->nTime < GetAdjustedTime() - params.stakeMinAge*2; // TODO Blocknet testnet could stall chain?
+//    if (notExpired && !tipChanged && staleTip)
+//        return false; // do not process if not expired, tip hasn't changed, and tip time is stale
+
+    if (GetTime() - lastStakeTime < params.nPowTargetSpacing) // Blocknet testnet staker shouldn't stake too quickly)
+        return false;
 
     {
         LOCK(mu);
@@ -256,6 +259,7 @@ bool StakeMgr::StakeBlock(const StakeCoin & stakeCoin, const CChainParams & chai
             return false;
         LogPrintf("Stake found! %s %d %f\n", stakeCoin.coin->outpoint.hash.ToString(), stakeCoin.coin->outpoint.n,
                   (double)stakeCoin.coin->txout.nValue/(double)COIN);
+        lastStakeTime = GetTime();
     } catch (std::exception & e) {
         LogPrintf("Error: Staking %s\n", e.what());
     }

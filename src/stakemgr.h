@@ -78,6 +78,7 @@ private:
     std::map<uint256, uint64_t> stakeModifiers;
     std::atomic<int64_t> lastUpdateTime{0};
     std::atomic<int> lastBlockHeight{0};
+    std::atomic<int64_t> lastStakeTime{0};
 };
 
 extern void ThreadStakeMinter();
